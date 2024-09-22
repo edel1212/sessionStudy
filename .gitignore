@@ -1,1 +1,36 @@
 .DS_Store
+
+
+# 컴파일된 클래스 파일
+*.class
+
+# Gradle 빌드 디렉토리
+/build/
+/out/
+
+# 로컬 환경 파일
+*.log
+*.tmp
+*.swp
+*.swo
+*.DS_Store
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Eclipse
+.project
+.classpath
+.csettings
+.settings/
+
+# Gradle Wrapper 파일
+/gradle/
+/gradlew
+/gradlew.bat
+
+# OS 생성 파일
+Thumbs.db
+.DS_Store
