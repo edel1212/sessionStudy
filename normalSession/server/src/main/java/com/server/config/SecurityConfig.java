@@ -19,8 +19,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 
-        http.formLogin(custom->{
-            custom.loginProcessingUrl("/login");
+        http.formLogin(formLogin->{
+            formLogin.loginPage("/loginForm");
+
+            // ℹ️ Spring Security에서는 따로 Long form을 사용할 경우 Controller 불필요
+            formLogin.loginProcessingUrl("/login");
+            
+            // 로그인이 끝나면 리다이렉트할 url
+		    formLogin.defaultSuccessUrl("/");
         });
 
         // 모든 접근 제한
