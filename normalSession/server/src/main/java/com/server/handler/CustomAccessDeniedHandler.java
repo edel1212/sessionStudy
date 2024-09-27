@@ -27,7 +27,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         Map<String, String> msg = new HashMap<>();
-        msg.put("msg","접근 권한이 없습니다.");
+        msg.put("msg","인증된 사용자가 권한이 없음");
         response.getWriter().write(objectMapper.writeValueAsString(msg));
     }
 }

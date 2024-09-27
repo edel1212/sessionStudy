@@ -37,16 +37,11 @@ public class SecurityConfig {
             cors.configurationSource(corsConfigurationSource());
         });
 
-        // ℹ️ Form 설정
-//        http.formLogin(formLogin -> {
-//            formLogin.loginProcessingUrl("/login");
-//        });
-
         http.exceptionHandling(handling ->
                 handling
-                        // ✨ Access Denied Handling
+                        // ✨ 인증된 사용자가 권한이 없을 때 호출
                         .accessDeniedHandler(customAccessDeniedHandler)
-                        // ✨ AuthenticationEntryPoint
+                        // ✨ 인증되지 않은 사용자가 보호된 리소스에 접근
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
         );
 

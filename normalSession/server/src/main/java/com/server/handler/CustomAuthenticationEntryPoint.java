@@ -27,7 +27,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         Map<String, String> msg = new HashMap<>();
-        msg.put("msg","End Poin Exception.");
+        msg.put("msg","인증되지 않은 사용자가 보호된 리소스에 접근");
         response.getWriter().write(objectMapper.writeValueAsString(msg));
     }
 }

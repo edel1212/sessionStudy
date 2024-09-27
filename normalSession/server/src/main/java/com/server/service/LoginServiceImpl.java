@@ -25,7 +25,7 @@ public class LoginServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         String encodedPassword = passwordEncoder.encode("123");
-        return new User(username,encodedPassword, this.authorities(Set.of("admin")));
+        return new User(username,encodedPassword, this.authorities(Set.of("Admin")));
     }
 
     private Collection<? extends GrantedAuthority> authorities(Set<String> roles){
