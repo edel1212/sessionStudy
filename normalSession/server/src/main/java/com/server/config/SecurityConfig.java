@@ -1,5 +1,8 @@
 package com.server.config;
 
+import com.server.handler.CustomAccessDeniedHandler;
+import com.server.handler.CustomAuthenticationEntryPoint;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -16,9 +19,14 @@ import java.util.Collections;
 @Component
 @Log4j2
 @EnableWebSecurity
+@RequiredArgsConstructor
 // 메서드 수준의 보안 설정을 활성화
 @EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig {
+
+    // 접근 제어 핸들러
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -30,9 +38,17 @@ public class SecurityConfig {
         });
 
         // ℹ️ Form 설정
-        http.formLogin(formLogin -> {
-            formLogin.loginProcessingUrl("/login");
-        });
+//        http.formLogin(formLogin -> {
+//            formLogin.loginProcessingUrl("/login");
+//        });
+
+        http.exceptionHandling(handling ->
+                handling
+                        // ✨ Access Denied Handling
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                        // ✨ AuthenticationEntryPoint
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+        );
 
        /**
         * 😱 @EnableMethodSecurity 사용할 경우 해당 코드 사용 금지!
