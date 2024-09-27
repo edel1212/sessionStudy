@@ -5,25 +5,28 @@ export default function Login() {
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
 
-  const login = async () => {
+  const loginFrom = async () => {
+    /**
+     * ℹ️ Form 방식으로 전달 해야 로그인이 성공함
+     */
+    // URLSearchParams 객체 생성
+    const formData = new URLSearchParams();
+    formData.append("username", id);
+    formData.append("password", pw);
+
     const response = await fetch("http://localhost:8080/login", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
-        id: id,
-        password: pw,
-      }),
+      body: formData.toString(),
+      // ℹ️ 해당 설정을 통해 Session 정보값을 쿠키에 받음
+      credentials: "include",
     });
-
     if (response.ok) {
-      const data = await response.json();
-      console.log("로그인 성공:", data);
-      // 로그인 성공 후 처리 (예: 페이지 이동)
+      console.log("로그인 성공:", response);
     } else {
       console.error("로그인 실패");
-      // 로그인 실패 처리
     }
   };
 
@@ -39,7 +42,13 @@ export default function Login() {
         <input name="pw" value={pw} onChange={(e) => setPw(e.target.value)} />
       </label>
       <hr />
-      <button>로그인</button>
+      <button
+        onClick={() => {
+          loginFrom();
+        }}
+      >
+        로그인
+      </button>
     </div>
   );
 }
