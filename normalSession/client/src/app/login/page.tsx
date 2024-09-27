@@ -23,8 +23,10 @@ export default function Login() {
       // ℹ️ 해당 설정을 통해 Session 정보값을 쿠키에 받음
       credentials: "include",
     });
+    const data = await response.json();
+    console.log(data);
     if (response.ok) {
-      console.log("로그인 성공:", response);
+      console.log("로그인 성공:", data);
     } else {
       console.error("로그인 실패");
     }
