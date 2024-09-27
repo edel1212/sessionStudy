@@ -2,6 +2,7 @@ package com.server.config;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -15,6 +16,8 @@ import java.util.Collections;
 @Component
 @Log4j2
 @EnableWebSecurity
+// 메서드 수준의 보안 설정을 활성화
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -31,11 +34,13 @@ public class SecurityConfig {
             formLogin.loginProcessingUrl("/login");
         });
 
-        // 접근 제한 추가
+       /**
+        * 😱 @EnableMethodSecurity 사용할 경우 해당 코드 사용 금지!
+        * - 접근 제어 중복으로 인해 원치 않은 접근 제한이 된다.
         http.authorizeHttpRequests(access -> {
-            access.requestMatchers("/login").permitAll();
             access.anyRequest().authenticated();
         });
+        **/
 
         return http.build();
     }
