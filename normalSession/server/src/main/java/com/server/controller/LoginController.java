@@ -9,9 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -30,9 +28,12 @@ public class LoginController {
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
+        // 인증 정보를 SecurityContext에 저장
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         // 새로운 세션 생성
         HttpSession session = request.getSession(true);
-        session.setAttribute("user", authentication.getPrincipal());
+        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());

@@ -11,8 +11,9 @@ public class CookieConfig {
     @Bean
     public CookieSerializer cookieSerializer() {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-        serializer.setSameSite("None");  // 쿠키를 다른 도메인 간 전송 가능하게 설정
-        serializer.setUseSecureCookie(false); // HTTPS가 아니라면 false
+        serializer.setSameSite("None");
+        serializer.setUseSecureCookie(false); // HTTPS가 아니면 false
+        serializer.setDomainName("localhost");
         return serializer;
     }
 }
