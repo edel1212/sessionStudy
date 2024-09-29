@@ -20,6 +20,7 @@ import java.util.Map;
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+        log.error(authException.getMessage());
         log.info("- Custom Authentication Entry PointHandler 접근 -");
         var objectMapper = new ObjectMapper();
         int scUnauthorized = HttpServletResponse.SC_UNAUTHORIZED;
