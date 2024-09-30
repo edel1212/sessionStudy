@@ -33,7 +33,8 @@ public class LoginController {
 
         // 새로운 세션 생성
         HttpSession session = request.getSession(true);
-        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+        // ℹ️ 각각의 사용자의 HttpSession session 정보는 다르기에 Key 중복은 일어나지 않는다.
+        session.setAttribute("SPRING_SECURITY_CONTEXT_" + authentication.getName(), SecurityContextHolder.getContext());
 
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());
