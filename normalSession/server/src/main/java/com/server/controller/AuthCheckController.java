@@ -49,7 +49,7 @@ public class AuthCheckController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<Map<String, String>> admin(@AuthenticationPrincipal UserDetails userDetails) {
         String authorities = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -65,7 +65,7 @@ public class AuthCheckController {
     }
 
     @GetMapping("/user")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('User')")
     public ResponseEntity<Map<String, String>> use(@AuthenticationPrincipal UserDetails userDetails) {
         String authorities = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
