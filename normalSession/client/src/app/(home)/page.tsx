@@ -45,16 +45,21 @@ export default function Home() {
     const formData = new URLSearchParams();
     formData.append("username", "yoo");
     formData.append("password", "123");
+    formData.append("_csrf", getCsrfTokenFromCookie());
+
+    const csrfToken = 'fe65c414-bda1-45aa-89fc-e77ed6b505d6';
 
     const response = await fetch("http://localhost:8080/login", {
       method: "POST",
       headers: {
+        'X-XSRF-TOKEN': getCsrfTokenFromCookie(), // 헤더에 CSRF 토큰 포함
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData.toString(),
       // ℹ️ 해당 설정을 통해 Session 정보값을 쿠키에 받음
       credentials: "include",
     });
+    console.log("CSRF Token:", csrfToken);
     const data = await response.json();
     console.log(data);
     if (response.ok) {
@@ -63,6 +68,17 @@ export default function Home() {
       console.error("로그인 실패");
     }
   };
+
+  function getCsrfTokenFromCookie() :string {
+    const cookieString = document.cookie; // 브라우저의 쿠키를 읽음
+    const cookies = cookieString.split('; '); // 각 쿠키를 '; '로 구분
+    const csrfTokenCookie = cookies.find(cookie => cookie.startsWith('XSRF-TOKEN=')); // XSRF-TOKEN 찾기
+    if (csrfTokenCookie) {
+        return csrfTokenCookie.split('=')[1]; // 토큰 값 반환
+    }
+    return "";
+}
+
 
   return (
     <div>

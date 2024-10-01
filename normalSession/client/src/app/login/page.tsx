@@ -1,28 +1,40 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Login() {
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
+
+  // 컴포넌트가 처음 렌더링될 때 CSRF 토큰을 가져오는 함수
+  const fetchCsrfToken = async () => {
+    const response = await fetch("http://localhost:8080/csrf", {
+      credentials: "include", // 쿠키 포함
+    });
+    const data = await response.json();
+    setCsrfToken(data.token); // 서버에서 받은 CSRF 토큰 설정
+  };
+
+  useEffect(() => {
+    fetchCsrfToken(); // 컴포넌트가 마운트될 때 CSRF 토큰을 가져옴
+  }, []);
 
   const loginFrom = async () => {
-    /**
-     * ℹ️ Form 방식으로 전달 해야 로그인이 성공함
-     */
-    // URLSearchParams 객체 생성
     const formData = new URLSearchParams();
     formData.append("username", id);
     formData.append("password", pw);
+    formData.append("_csrf", csrfToken); // CSRF 토큰을 본문에 추가
 
     const response = await fetch("http://localhost:8080/login", {
       method: "POST",
       headers: {
+        //'X-XSRF-TOKEN': csrfToken,
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData.toString(),
-      // ℹ️ 해당 설정을 통해 Session 정보값을 쿠키에 받음
-      credentials: "include",
+      credentials: "include", // 쿠키 포함
     });
+
     const data = await response.json();
     console.log(data);
     if (response.ok) {
@@ -44,13 +56,7 @@ export default function Login() {
         <input name="pw" value={pw} onChange={(e) => setPw(e.target.value)} />
       </label>
       <hr />
-      <button
-        onClick={() => {
-          loginFrom();
-        }}
-      >
-        로그인
-      </button>
+      <button onClick={loginFrom}>로그인</button>
     </div>
   );
 }
