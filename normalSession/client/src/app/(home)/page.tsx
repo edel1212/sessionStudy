@@ -77,6 +77,16 @@ export default function Home() {
   return (
     <div>
       <p>
+        {csrfToken}
+        <button
+          onClick={() => {
+            fetchCsrfToken();
+          }}
+        >
+          Refresh CSRF Token
+        </button>
+      </p>
+      <p>
         <button onClick={() => apiResponse("http://localhost:8080/all")}>
           All Access
         </button>
