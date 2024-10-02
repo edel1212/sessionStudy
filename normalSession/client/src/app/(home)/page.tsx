@@ -1,23 +1,32 @@
 "use client";
-export default function Home() {
-  const textResponse = async (url: string) => {
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include", // 세션 쿠키 포함
-    });
-    const data = await response.text();
 
-    if (response.ok) {
-      console.log("요청 성공:", data);
-    } else {
-      console.error("요청 실패");
-    }
+import { useEffect, useState } from "react";
+
+export default function Home() {
+  const [csrfToken, setCsrfToken] = useState("");
+
+  // 컴포넌트가 처음 렌더링될 때 CSRF 토큰을 가져오는 함수
+  const fetchCsrfToken = async () => {
+    const response = await fetch("http://localhost:8080/csrf", {
+      credentials: "include", // 쿠키 포함
+    });
+    const data = await response.json();
+    setCsrfToken(data.token); // 서버에서 받은 CSRF 토큰 설정
   };
 
-  const jsonResponse = async (url: string) => {
+  useEffect(() => {
+    fetchCsrfToken(); // 컴포넌트가 마운트될 때 CSRF 토큰을 가져옴
+  }, []);
+
+  console.log("csrfToken :::::::", csrfToken);
+
+  const apiResponse = async (url: string) => {
     const response = await fetch(url, {
-      method: "GET",
-      credentials: "include", // 세션 쿠키 포함
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrfToken, // 헤더에 CSRF 토큰 포함
+      },
+      credentials: "include",
     });
     const data = await response.json();
     if (response.ok) {
@@ -45,21 +54,17 @@ export default function Home() {
     const formData = new URLSearchParams();
     formData.append("username", "yoo");
     formData.append("password", "123");
-    formData.append("_csrf", getCsrfTokenFromCookie());
-
-    const csrfToken = 'fe65c414-bda1-45aa-89fc-e77ed6b505d6';
+    formData.append("_csrf", csrfToken);
 
     const response = await fetch("http://localhost:8080/login", {
       method: "POST",
       headers: {
-        'X-XSRF-TOKEN': getCsrfTokenFromCookie(), // 헤더에 CSRF 토큰 포함
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData.toString(),
       // ℹ️ 해당 설정을 통해 Session 정보값을 쿠키에 받음
       credentials: "include",
     });
-    console.log("CSRF Token:", csrfToken);
     const data = await response.json();
     console.log(data);
     if (response.ok) {
@@ -69,43 +74,32 @@ export default function Home() {
     }
   };
 
-  function getCsrfTokenFromCookie() :string {
-    const cookieString = document.cookie; // 브라우저의 쿠키를 읽음
-    const cookies = cookieString.split('; '); // 각 쿠키를 '; '로 구분
-    const csrfTokenCookie = cookies.find(cookie => cookie.startsWith('XSRF-TOKEN=')); // XSRF-TOKEN 찾기
-    if (csrfTokenCookie) {
-        return csrfTokenCookie.split('=')[1]; // 토큰 값 반환
-    }
-    return "";
-}
-
-
   return (
     <div>
       <p>
-        <button onClick={() => textResponse("http://localhost:8080/all")}>
+        <button onClick={() => apiResponse("http://localhost:8080/all")}>
           All Access
         </button>
       </p>
       <p>
-        <button onClick={() => textResponse("http://localhost:8080/no-login")}>
+        <button onClick={() => apiResponse("http://localhost:8080/no-login")}>
           No Login
         </button>
       </p>
       <p>
         <button
-          onClick={() => jsonResponse("http://localhost:8080/has-certified")}
+          onClick={() => apiResponse("http://localhost:8080/has-certified")}
         >
           Login User
         </button>
       </p>
       <p>
-        <button onClick={() => jsonResponse("http://localhost:8080/admin")}>
+        <button onClick={() => apiResponse("http://localhost:8080/admin")}>
           Admin
         </button>
       </p>
       <p>
-        <button onClick={() => jsonResponse("http://localhost:8080/user")}>
+        <button onClick={() => apiResponse("http://localhost:8080/user")}>
           User
         </button>
       </p>
