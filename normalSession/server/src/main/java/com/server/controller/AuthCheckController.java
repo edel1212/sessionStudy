@@ -6,7 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -16,21 +16,25 @@ import java.util.Map;
 @RestController
 public class AuthCheckController {
 
-    @GetMapping("/all")
+    @PostMapping("/all")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<String> all(){
-        return ResponseEntity.ok("모두가 접근");
+    public ResponseEntity<Map<String, String>> all(){
+        Map<String, String> msg = new HashMap<>();
+        msg.put("msg", "All Access");
+        return ResponseEntity.ok(msg);
     }
 
     // 인증되지 않은 사용자
-    @GetMapping("/no-login")
+    @PostMapping("/no-login")
     @PreAuthorize("isAnonymous()")
-    public ResponseEntity<String> noLogin(){
-        return ResponseEntity.ok("인증되지 않은 사람만 접근!!");
+    public ResponseEntity<Map<String, String>> noLogin(){
+        Map<String, String> msg = new HashMap<>();
+        msg.put("msg", "Doesn't have Auth");
+        return ResponseEntity.ok(msg);
     }
 
     // 인증된 사용자
-    @GetMapping("/has-certified")
+    @PostMapping("/has-certified")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, String>> isAuthenticated(@AuthenticationPrincipal UserDetails userDetails) {
         String authorities = userDetails.getAuthorities().stream()
@@ -48,7 +52,7 @@ public class AuthCheckController {
         return ResponseEntity.ok(userInfo);
     }
 
-    @GetMapping("/admin")
+    @PostMapping("/admin")
     @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<Map<String, String>> admin(@AuthenticationPrincipal UserDetails userDetails) {
         String authorities = userDetails.getAuthorities().stream()
@@ -64,7 +68,7 @@ public class AuthCheckController {
         return ResponseEntity.ok(userInfo);
     }
 
-    @GetMapping("/user")
+    @PostMapping("/user")
     @PreAuthorize("hasRole('User')")
     public ResponseEntity<Map<String, String>> use(@AuthenticationPrincipal UserDetails userDetails) {
         String authorities = userDetails.getAuthorities().stream()
