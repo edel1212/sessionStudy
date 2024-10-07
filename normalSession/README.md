@@ -247,7 +247,7 @@
         -  `X-CSRF-TOKEN`를 Key로 전송 - `"X-CSRF-TOKEN": csrfToken`
     
   - 중요 포인트🤩
-    - `Header` 내 `credentials: "include"`를 사용하여 `Cookie`값을 함께 보내야함
+    - 요청 내 `credentials: "include"`를 사용하여 `Cookie`값을 함께 보내주자
     
   - 코드
   ```javascript
@@ -308,3 +308,69 @@
     }
   };
   ```  
+
+## 접근 제어
+
+- ### Client
+  - 로그인 후 `Cookie`에 저장되는 `Session`을  API 요청 시 **전달만** 해주면 된다.
+    - 요청 내 `credentials: "include"`를 추가
+- ### Server
+  - Spring Security 내 Filter를 통해 자동으로 권한별 접근 제어 처리를 해준다.
+  ```java
+  @Log4j2
+  @RestController
+  public class AuthCheckController {
+
+      @PostMapping("/all")
+      @PreAuthorize("permitAll()")
+      public ResponseEntity<Map<String, String>> all(){
+          Map<String, String> msg = new HashMap<>();
+          msg.put("msg", "All Access");
+          return ResponseEntity.ok(msg);
+      }
+
+      // 인증되지 않은 사용자
+      @PostMapping("/no-login")
+      @PreAuthorize("isAnonymous()")
+      public ResponseEntity<Map<String, String>> noLogin(){
+          Map<String, String> msg = new HashMap<>();
+          msg.put("msg", "Doesn't have Auth");
+          return ResponseEntity.ok(msg);
+      }
+
+      // 인증된 사용자
+      @PostMapping("/has-certified")
+      @PreAuthorize("isAuthenticated()")
+      public ResponseEntity<Map<String, String>> isAuthenticated(@AuthenticationPrincipal UserDetails userDetails) {
+          String authorities = userDetails.getAuthorities().stream()
+                  .map(GrantedAuthority::getAuthority)
+                  .reduce((a, b) -> a + ", " + b)
+                  .orElse("권한 없음");
+
+          // 사용자 정보와 권한을 Map에 담기
+          Map<String, String> userInfo = new HashMap<>();
+          userInfo.put("username", userDetails.getUsername());
+          userInfo.put("password", userDetails.getPassword());
+          userInfo.put("authorities", authorities);
+
+          // Map을 JSON 응답으로 반환
+          return ResponseEntity.ok(userInfo);
+      }
+
+      @PostMapping("/admin")
+      @PreAuthorize("hasRole('Admin')")
+      public ResponseEntity<Map<String, String>> admin(@AuthenticationPrincipal UserDetails userDetails) {
+          String authorities = userDetails.getAuthorities().stream()
+                  .map(GrantedAuthority::getAuthority)
+                  .reduce((a, b) -> a + ", " + b)
+                  .orElse("권한 없음");
+          // 사용자 정보와 권한을 Map에 담기
+          Map<String, String> userInfo = new HashMap<>();
+          userInfo.put("username", userDetails.getUsername());
+          userInfo.put("password", userDetails.getPassword());
+          userInfo.put("authorities", authorities);
+          // Map을 JSON 응답으로 반환
+          return ResponseEntity.ok(userInfo);
+      }
+  }
+  ```
