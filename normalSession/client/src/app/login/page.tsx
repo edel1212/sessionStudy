@@ -28,7 +28,6 @@ export default function Login() {
     const response = await fetch("http://localhost:8080/login", {
       method: "POST",
       headers: {
-        //'X-XSRF-TOKEN': csrfToken,
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData.toString(),

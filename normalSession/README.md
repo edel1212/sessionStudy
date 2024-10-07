@@ -195,6 +195,19 @@
             return ResponseEntity.ok(result);
         }
     }
+
+    /*********************************************************************************************************/
+
+    @RestController
+    public class CsrfController {
+        @GetMapping("/csrf")
+        public Map<String, String> getCsrfToken(HttpServletRequest request) {
+            CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+            Map<String, String> tokenMap = new HashMap<>();
+            tokenMap.put("token", csrfToken.getToken());
+            return tokenMap;
+        }
+    }
     ```
 
     - Service
@@ -223,3 +236,75 @@
         }
     }
     ```
+- ### Client
+  - CSRF Token
+    - 해당 프로젝트는 `useState()`로 토큰을 관리 하지만 `Recoil`적용을 적용 하는 방법도 있음
+    - 실제 프로젝트 적용 시 `SSR` 방식으로 불러와 처리 
+    -  전송 방식
+      - Form형태
+        -  `_csrf`를 Key 로 전송 - `formData.append("_csrf", csrfToken);`
+      - Header 형태
+        -  `X-CSRF-TOKEN`를 Key로 전송 - `"X-CSRF-TOKEN": csrfToken`
+    
+  - 중요 포인트🤩
+    - `Header` 내 `credentials: "include"`를 사용하여 `Cookie`값을 함께 보내야함
+    
+  - 코드
+  ```javascript
+  const [csrfToken, setCsrfToken] = useState("");
+
+  // Get CSRF Token
+  const fetchCsrfToken = async () => {
+    const response = await fetch("http://localhost:8080/csrf", {
+      credentials: "include", 
+    });
+    const data = await response.json();
+    setCsrfToken(data.token); // 서버에서 받은 CSRF 토큰 설정
+  };
+
+  // 🎶 컴포넌트가 마운트될 때 CSRF 토큰을 가져옴
+  useEffect(() => {
+    fetchCsrfToken(); 
+  }, []);
+
+  const apiResponse = async (url: string) => {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        // 🎶 Header를 통해 CSRF 토큰 전송
+        "X-CSRF-TOKEN": csrfToken, 
+      },
+      credentials: "include",
+    });
+    const data = await response.json();
+    if (response.ok) {
+      console.log("요청 성공:", data);
+    } else {
+      console.error("요청 실패");
+    }
+  };
+
+  const logIn = async () => {
+    const formData = new URLSearchParams();
+    formData.append("username", "yoo");
+    formData.append("password", "123");
+    formData.append("_csrf", csrfToken);
+
+    const response = await fetch("http://localhost:8080/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
+      // ℹ️ 해당 설정을 통해 Session 정보값을 쿠키에 받음
+      credentials: "include",
+    });
+    const data = await response.json();
+    console.log(data);
+    if (response.ok) {
+      console.log("로그인 성공:", data);
+    } else {
+      console.error("로그인 실패");
+    }
+  };
+  ```  
