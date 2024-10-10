@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,4 +42,17 @@ public class LoginController {
 
         return ResponseEntity.ok(result);
     }
+
+
+    @GetMapping("/dummy-login")
+    private ResponseEntity<String> login( HttpServletRequest httpRequest) {
+
+        final HttpSession session = httpRequest.getSession();
+        session.setAttribute("memberId", "ABCDEFG");
+        session.setMaxInactiveInterval(3600);
+
+        return ResponseEntity.ok("!?!?!");
+    }
+
+
 }
