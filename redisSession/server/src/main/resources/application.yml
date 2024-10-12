@@ -2,12 +2,11 @@
 server:
   port: 8081
 
-
-
 spring:
   session:
     store-type: redis
     redis:
+      # Redis에 저장될 Key Prefix
       namespace: yoo:session
 
   ############################
