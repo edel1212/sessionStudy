@@ -45,17 +45,26 @@ public class LoginController {
 
 
     @GetMapping("/dummy-login")
-    private ResponseEntity<String> login( HttpServletRequest httpRequest) {
+    private ResponseEntity<String> login( HttpServletRequest request) {
 
-        final HttpSession session = httpRequest.getSession();
+        HttpSession session = request.getSession(true);
         // Redis cli 를 통해 확인 가능
         // > keys *
         // > 1) "yoo:session:sessions:ae4a86cb-f2e7-43ef-a730-4a738255d226"
-        session.setAttribute("memberId", "ABCDEFG");
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, "Hi - ContextObject");
         // Session 지속 시간
         session.setMaxInactiveInterval(3600);
 
         return ResponseEntity.ok("!?!?!");
+    }
+
+    @GetMapping("/session-data")
+    private ResponseEntity<String> getSessionData( HttpServletRequest httpRequest) {
+
+        final HttpSession session = httpRequest.getSession();
+        String memberId = session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY).toString();
+
+        return ResponseEntity.ok(memberId);
     }
 
 
