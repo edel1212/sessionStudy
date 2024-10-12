@@ -50,8 +50,10 @@ public class LoginController {
         final HttpSession session = httpRequest.getSession();
         // Redis cli 를 통해 확인 가능
         // > keys *
+        // > 1) "yoo:session:sessions:ae4a86cb-f2e7-43ef-a730-4a738255d226"
         session.setAttribute("memberId", "ABCDEFG");
-        session.setMaxInactiveInterval(10);
+        // Session 지속 시간
+        session.setMaxInactiveInterval(3600);
 
         return ResponseEntity.ok("!?!?!");
     }
