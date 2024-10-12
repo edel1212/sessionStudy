@@ -48,8 +48,10 @@ public class LoginController {
     private ResponseEntity<String> login( HttpServletRequest httpRequest) {
 
         final HttpSession session = httpRequest.getSession();
+        // Redis cli 를 통해 확인 가능
+        // > keys *
         session.setAttribute("memberId", "ABCDEFG");
-        session.setMaxInactiveInterval(3600);
+        session.setMaxInactiveInterval(10);
 
         return ResponseEntity.ok("!?!?!");
     }
