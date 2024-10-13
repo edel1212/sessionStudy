@@ -1,11 +1,13 @@
 package com.yoo.server.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,8 +20,13 @@ public class AuthCheckController {
 
     @PostMapping("/all")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<Map<String, String>> all(){
+    public ResponseEntity<Map<String, String>> all(HttpServletRequest request){
         Map<String, String> msg = new HashMap<>();
+
+        log.info("-----------------------");
+        Object redisSession = request.getSession().getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+        log.info("-----------------------");
+
         msg.put("msg", "All Access");
         return ResponseEntity.ok(msg);
     }
