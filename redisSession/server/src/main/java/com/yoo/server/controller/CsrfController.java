@@ -14,6 +14,7 @@ public class CsrfController {
     @GetMapping("/csrf")
     public Map<String, String> getCsrfToken(HttpServletRequest request) {
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+        if(csrfToken == null) return null;
         Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", csrfToken.getToken());
         return tokenMap;
