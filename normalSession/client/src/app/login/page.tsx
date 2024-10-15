@@ -16,7 +16,7 @@ export default function Login() {
   };
 
   useEffect(() => {
-    fetchCsrfToken(); // 컴포넌트가 마운트될 때 CSRF 토큰을 가져옴
+    //fetchCsrfToken(); // 컴포넌트가 마운트될 때 CSRF 토큰을 가져옴
   }, []);
 
   const loginFrom = async () => {
