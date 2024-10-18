@@ -1,8 +1,24 @@
 # NextJs(Client) <-> SpringBoots(Servers)   [width Redis Session]
 
 ```properties
-✅ Redis Session Clustering를 사용해서 병렬적 서버 구조에서도 Session을 공유
+# ✅ Redis Session Clustering를 사용해서 MAS 구조에서도 Session을 공유
+
+# 🗨 분선 서버 구조에서 SessionID 전달 방식
+#  ◽ 방법 1 -  Cookie에 Session ID 전달
+#  ◽ 방법 2 -  Custom Header에 Session ID 전달
 ```
+
+## Session ID 전달 방식 비교
+
+| **방식**                     | **장점**                                                                                      | **단점**                                                   |
+|------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| **Cookie에 Session ID**         | - 브라우저가 자동으로 관리 (쿠키 자동 전송)                                                   | - CSRF 공격에 취약 (추가적으로 CSRF 토큰 필요)                         |
+|                              | - `SameSite`, `HttpOnly`, `Secure` 속성으로 추가 보안 설정 가능                                | - 브라우저 제약이나 CORS 설정에 의해 쿠키 전송이 차단될 수 있음                  |
+|                              | - 별도의 클라이언트 로직 없이 브라우저가 처리                                                 | - 비 브라우저 환경에서 사용하기 어려움 ( **장점이 될 수 있음!** )               |
+| **Custom Header에 Session ID**| - CSRF 공격 방어 가능                                       | - 클라이언트에서 모든 요청마다 Session ID를 설정해야 함     |
+|                              | - 브라우저 외의 환경(모바일 앱, 서버 간 통신 등)에서도 쉽게 사용 가능                           | - 쿠키에 비해 구현 복잡도 증가 (클라이언트 코드에서 관리 필요)                    |
+|                              | - 쿠키 관련 브라우저 정책에 구애받지 않음 (SameSite, CORS 문제 없음)                          | - 헤더에 Session ID가 담길 경우, HTTPS 미사용 시 보안에 취약  |
+
 
 ## 흐름
 
