@@ -57,7 +57,7 @@ spring:
       password: 123
 ```
 
-## Cookie 전달 방식 Server 설정
+## **Cookie 전달 방식** Server 설정
 
 - ### Cookie 설정
   - 주의사항
@@ -67,22 +67,21 @@ spring:
       - Chrome의 경우 보안을 위해  자체적으로 막음
       - `None`을 사용하고 싶다면 `setUseSecureCookie(true)`를 사용해야 함
       
-### SameSite 속성 요약
+- #### SameSite 속성 요약
 
-- **SameSite=Lax**:
-  - 동일한 사이트 내에서만 쿠키가 전송되며, 외부 링크에서 넘어온 경우에도 **GET 요청**에 한해서만 쿠키가 전송
-  - **기본 설정**이며, 보안과 사용 편의성 간의 균형을 유지
-  - **예시**: 사용자가 사이트 A에서 링크를 클릭하여 사이트 B로 이동하는 경우, 사이트 B에서의 **GET 요청** 시 쿠키가 전송됩니다. 하지만 사이트 A에서의 **POST 요청** 시 **쿠키 전송X**
+  - **SameSite=Lax**:
+    - 동일한 사이트 내에서만 쿠키가 전송되며, 외부 링크에서 넘어온 경우에도 **GET 요청**에 한해서만 쿠키가 전송
+    - **기본 설정**이며, 보안과 사용 편의성 간의 균형을 유지
+    - **예시**: 사용자가 사이트 A에서 링크를 클릭하여 사이트 B로 이동하는 경우, 사이트 B에서의 **GET 요청** 시 쿠키가 전송됩니다. 하지만 사이트 A에서의 **POST 요청** 시 **쿠키 전송X**
 
-- **SameSite=Strict**:
-  - **다른 도메인**에서의 모든 요청에 대해 **쿠키가 전송되지 않음**
-  - 외부 링크나 POST 요청이 있을 때 쿠키가 차단될 수 있어 엄격한 보안을 제공
-  - **예시**: 사용자가 사이트 A에서 링크를 클릭하여 사이트 B로 이동하면, 사이트 B에서의 **모든 요청**(GET, POST 등)에 대해 **쿠키 전송X**
+  - **SameSite=Strict**:
+    - **다른 도메인**에서의 모든 요청에 대해 **쿠키가 전송되지 않음**
+    - 외부 링크나 POST 요청이 있을 때 쿠키가 차단될 수 있어 엄격한 보안을 제공
+    - **예시**: 사용자가 사이트 A에서 링크를 클릭하여 사이트 B로 이동하면, 사이트 B에서의 **모든 요청**(GET, POST 등)에 대해 **쿠키 전송X**
 
-- **SameSite=None**:
-  - 모든 도메인의 요청에 대해 쿠키가 전송되지만 보안에 굉장히 취약
-  - 크로스 사이트 요청에 대해 쿠키가 필요할 때 사용
-
+  - **SameSite=None**:
+    - 모든 도메인의 요청에 대해 쿠키가 전송되지만 보안에 굉장히 취약
+    - 크로스 사이트 요청에 대해 쿠키가 필요할 때 사용
 ```java
 @Configuration
 public class CookieConfig {
@@ -107,3 +106,41 @@ public class CookieConfig {
   }
 }
 ```
+
+- ### Controller
+  - 기본 Session 방식과 똑같다 
+    - Redis Session 방식으로 설정 시 `session.setAttribute`로 값을 저장하면 Redis에 저장됨
+      -  세션과 같이 복잡한 구조를 `redis cli`로 조회할 경우 `HGETALL` 명령어를 사용 필요
+        - ` HGET session:<session_id> <field_name>`
+      
+```java
+@RestController
+@RequiredArgsConstructor
+public class LoginController {
+    // Spring Security Manager
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+
+    @PreAuthorize("isAnonymous()")
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> login(String username, String password, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        // 인증 정보를 SecurityContext에 저장
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 새로운 세션 생성
+        HttpSession session = request.getSession(true);
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
+
+        Map<String, String> result = new HashMap<>();
+        result.put("userName", authentication.getName());
+
+        return ResponseEntity.ok(result);
+    }
+}
+```
+
+- ### 인가 및 인증 API
+  - 기본 Session 방식과 같기에 제외함
