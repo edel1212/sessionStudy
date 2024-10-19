@@ -20,6 +20,7 @@ public class CookieConfig {
          * // serializer.setSameSite("None");
          *
          * */
+        serializer.setCookieName("JSESSIONID");
         // HTTP 프로토콜일 경우에도 쿠키 전송 허용 [ 비권장 ]
         serializer.setUseSecureCookie(false);
         // 쿠키가 유효한 도메인을 지정

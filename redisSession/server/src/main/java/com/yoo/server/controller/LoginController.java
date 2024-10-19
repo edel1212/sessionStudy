@@ -3,6 +3,7 @@ package com.yoo.server.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
+@Log4j2
 @RestController
 @RequiredArgsConstructor
 public class LoginController {
@@ -40,6 +42,21 @@ public class LoginController {
         result.put("userName", authentication.getName());
 
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/member/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request, Authentication authentication) {
+        // 현재 세션을 가져옵니다.
+        HttpSession session = request.getSession(false); // false로 설정하면 세션이 없을 때 새로운 세션을 만들지 않습니다.
+
+        log.info("-- Session 삭제 진입--");
+        if (session != null) {
+            log.info("-- Session 삭제 성공--");
+            session.invalidate(); // 세션 무효화
+        }
+
+        // 로그아웃 성공 메시지 반환
+        return ResponseEntity.ok("Logged out successfully");
     }
 
 

@@ -37,8 +37,7 @@ public class SecurityConfig {
             cors.configurationSource(corsConfigurationSource());
         });
 
-        // CSRF 설정
-        http.csrf(AbstractHttpConfigurer::disable);
+        http.logout(logout->logout.logoutUrl("/logout"));
 
         // 세션 설정
         http.sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
