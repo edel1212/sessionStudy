@@ -40,6 +40,11 @@ public class SecurityConfig {
         // 세션 설정
         http.sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
+        // csrf 설정
+        //http.csrf(csrf-> csrf.ignoringRequestMatchers("/logout"));
+
+        http.logout(logout->logout.disable());
+
         http.exceptionHandling(handling ->
                 handling
                         // ✨ 인증된 사용자가 권한이 없을 때 호출

@@ -43,4 +43,17 @@ public class LoginController {
 
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request, Authentication authentication) {
+        // 현재 세션을 가져옵니다.
+        HttpSession session = request.getSession(false); // false로 설정하면 세션이 없을 때 새로운 세션을 만들지 않습니다.
+
+        if (session != null) {
+            session.invalidate(); // 세션 무효화
+        }
+
+        // 로그아웃 성공 메시지 반환
+        return ResponseEntity.ok("Logged out successfully");
+    }
 }
