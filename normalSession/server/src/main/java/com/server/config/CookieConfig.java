@@ -18,7 +18,7 @@ public class CookieConfig {
          *    ㄴ> Lax    : 교차 사이트에서까지 쿠키 전송 ( 링크를 통한 접근 )
          *    ㄴ> None   : 모든 요청에 대해 쿠키를 전송함
          * */
-        serializer.setSameSite("None");
+        //serializer.setSameSite("None");
         // HTTP 프로토콜일 경우에도 쿠키 전송 허용 [ 비권장 ]
         serializer.setUseSecureCookie(false);
         // 쿠키가 유효한 도메인을 지정
