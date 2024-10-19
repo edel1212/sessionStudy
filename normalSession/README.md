@@ -236,27 +236,28 @@
         }
     }
     ```
+
 - ### Client
+
   - CSRF Token
     - 해당 프로젝트는 `useState()`로 토큰을 관리 하지만 `Recoil`적용을 적용 하는 방법도 있음
-    - 실제 프로젝트 적용 시 `SSR` 방식으로 불러와 처리 
-    -  전송 방식
-      - Form형태
-        -  `_csrf`를 Key 로 전송 - `formData.append("_csrf", csrfToken);`
-      - Header 형태
-        -  `X-CSRF-TOKEN`를 Key로 전송 - `"X-CSRF-TOKEN": csrfToken`
-    
+    - 실제 프로젝트 적용 시 `SSR` 방식으로 불러와 처리
+    - 전송 방식
+    - Form형태
+      - `_csrf`를 Key 로 전송 - `formData.append("_csrf", csrfToken);`
+    - Header 형태
+      - `X-CSRF-TOKEN`를 Key로 전송 - `"X-CSRF-TOKEN": csrfToken`
   - 중요 포인트🤩
     - 요청 내 `credentials: "include"`를 사용하여 `Cookie`값을 함께 보내주자
-    
   - 코드
+
   ```javascript
   const [csrfToken, setCsrfToken] = useState("");
 
   // Get CSRF Token
   const fetchCsrfToken = async () => {
     const response = await fetch("http://localhost:8080/csrf", {
-      credentials: "include", 
+      credentials: "include",
     });
     const data = await response.json();
     setCsrfToken(data.token); // 서버에서 받은 CSRF 토큰 설정
@@ -264,25 +265,8 @@
 
   // 🎶 컴포넌트가 마운트될 때 CSRF 토큰을 가져옴
   useEffect(() => {
-    fetchCsrfToken(); 
+    fetchCsrfToken();
   }, []);
-
-  const apiResponse = async (url: string) => {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        // 🎶 Header를 통해 CSRF 토큰 전송
-        "X-CSRF-TOKEN": csrfToken, 
-      },
-      credentials: "include",
-    });
-    const data = await response.json();
-    if (response.ok) {
-      console.log("요청 성공:", data);
-    } else {
-      console.error("요청 실패");
-    }
-  };
 
   const logIn = async () => {
     const formData = new URLSearchParams();
@@ -307,15 +291,121 @@
       console.error("로그인 실패");
     }
   };
-  ```  
+  ```
+
+## Log-out
+
+- ### Server
+
+  - 주의사항
+    - `POST`방식의 `/logout` URL을 사용하려면 따로 Security 설정을 해줘야 함
+      - **Default Spring Security 설정** 값 이기에 요청 시 **원하지 않는** 로직으로 **실행**
+    - Logout으로 사용 중인 Session을 삭제 했다면 기존에 사용 중인 `CSRF Token` **재발급** 받아줘야 함
+      - 이전 사용 중인 `CSRF`는 **세션**이 **삭제** 되면서 **사용할 수 없기 때문**
+
+  ```java
+  @Log4j2
+  @RestController
+  @RequiredArgsConstructor
+  public class MemberController {
+      @PostMapping("/member/logout")
+      public ResponseEntity<String> logout(HttpServletRequest request, Authentication authentication) {
+          // 현재 세션을 가져옵니다.
+          HttpSession session = request.getSession(false); // false로 설정하면 세션이 없을 때 새로운 세션을 만들지 않습니다.
+
+          log.info("-- Session 삭제 진입--");
+          if (session != null) {
+              log.info("-- Session 삭제 성공--");
+              session.invalidate(); // 세션 무효화
+          }
+
+          // 로그아웃 성공 메시지 반환
+          return ResponseEntity.ok("Logged out successfully");
+      }
+  }
+  ```
+
+- ### Client
+
+  - 주의 사항
+    - 세션 삭제 후 재 로그인이 필요할 경우 `CSRF Token` 재발급
+
+  ```javascrip
+    const logOut = async () => {
+    fetch("http://localhost:8080/member/logout", {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrfToken, // 헤더에 CSRF 토큰 포함
+      },
+      credentials: "include", // 쿠키/세션 정보 포함
+    }).then((response) => {
+      if (response.ok) {
+        alert("로그아웃 성공!");
+        console.log("Logged out successfully");
+        setResponseData("Logged out successfully"); // 로그아웃 결과 출력
+        // ✨ Log - Out  시 CRSF 토큰도 같이 날라가므로 새로 초기화 해주자
+        fetchCsrfToken();
+      }
+    });
+  };
+  ```
 
 ## 접근 제어
 
 - ### Client
-  - 로그인 후 `Cookie`에 저장되는 `Session`을  API 요청 시 **전달만** 해주면 된다.
+
+  - 로그인 후 `Cookie`에 저장되는 `Session`을 API 요청 시 **전달만** 해주면 된다.
     - 요청 내 `credentials: "include"`를 추가
+
+  ```javascript
+  "use client";
+  import { useEffect, useState } from "react";
+
+  export default function NormalSession() {
+    const [csrfToken, setCsrfToken] = useState("");
+    const [responseData, setResponseData] = useState("");
+
+    // 컴포넌트가 처음 렌더링될 때 CSRF 토큰을 가져오는 함수
+    const fetchCsrfToken = async () => {
+      const response = await fetch("http://localhost:8080/csrf", {
+        credentials: "include", // 쿠키 포함
+      });
+      const data = await response.json();
+      setCsrfToken(data.token);
+      // JSON 데이터를 문자열로 변환하여 상태에 저장
+      setResponseData(JSON.stringify(data, null, 2));
+    };
+
+    useEffect(() => {
+      fetchCsrfToken(); // 컴포넌트가 마운트될 때 CSRF 토큰을 가져옴
+    }, []);
+
+    const apiResponse = async (url: string) => {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          // 헤더에 CSRF 토큰 포함
+          "X-CSRF-TOKEN": csrfToken,
+        },
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setResponseData(JSON.stringify(data, null, 2));
+      } else {
+        console.error("요청 실패");
+        setResponseData("Error: 요청에 실패했습니다.");
+      }
+    };
+
+    return <></>;
+  }
+  ```
+
 - ### Server
+
   - Spring Security 내 Filter를 통해 자동으로 권한별 접근 제어 처리를 해준다.
+
   ```java
   @Log4j2
   @RestController
