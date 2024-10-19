@@ -41,7 +41,7 @@ export default function NormalSession() {
   };
 
   const logOut = async () => {
-    fetch("http://localhost:8080/logout", {
+    fetch("http://localhost:8080/member/logout", {
       method: "POST",
       headers: {
         "X-CSRF-TOKEN": csrfToken, // 헤더에 CSRF 토큰 포함
@@ -64,7 +64,7 @@ export default function NormalSession() {
     formData.append("password", "123");
     formData.append("_csrf", csrfToken);
 
-    const response = await fetch("http://localhost:8080/login", {
+    const response = await fetch("http://localhost:8080/member/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
