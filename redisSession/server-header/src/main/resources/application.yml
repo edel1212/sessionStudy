@@ -19,3 +19,7 @@ spring:
       host: localhost
       port: 6379
       password: 123
+
+
+      #yoo:session:sessions:7ac73671-e50b-4129-8847-1c987f7c6d2e
+      #yoo:session:sessions:7ac73671-e50b-4129-8847-1c987f7c6d2e
