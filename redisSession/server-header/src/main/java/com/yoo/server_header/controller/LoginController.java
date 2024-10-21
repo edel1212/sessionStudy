@@ -26,7 +26,6 @@ import java.util.Map;
 public class LoginController {
     // Spring Security Manager
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final RedisTemplate redisTemplate;
 
     @Value("${spring.session.redis.namespace}")
     private String redisSessionPrefix;
@@ -41,28 +40,9 @@ public class LoginController {
         // 인증 정보를 SecurityContext에 저장
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Redis에서 기존 세션 찾기
-        String existingSessionId = (String) redisTemplate.opsForValue().get("loginUserId:" + username);
-        log.info("--------------");
-        log.info(existingSessionId);
-        log.info("--------------");
-        // 이미 로그인한 경우
-        if (existingSessionId != null) {
-            // 기존 세션 무효화
-//            HttpSession oldSession = request.getSession(false);
-//            oldSession.invalidate();
-            // Redis에 저장된 Session 제거
-            log.info("redisSessionPrefix ::" + redisSessionPrefix + ":sessions:" +existingSessionId);
-            // TOdo 체크 필요
-            redisTemplate.delete(redisSessionPrefix + ":sessions:" +existingSessionId);
-        }// if
-
         // 새로운 세션 생성
         HttpSession newSession = request.getSession(true);
         newSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
-
-        // Redis에 새 세션 ID 저장
-        redisTemplate.opsForValue().set("loginUserId:" + username, newSession.getId());
 
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());
@@ -74,7 +54,7 @@ public class LoginController {
     @PostMapping("/member/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
         // 현재 세션을 가져옵니다.
-        HttpSession session = request.getSession(false); // false로 설정하면 세션이 없을 때 새로운 세션을 만들지 않습니다.
+        HttpSession session = request.getSession(false);
 
         log.info("-- Session 삭제 진입--");
         if (session != null) {
