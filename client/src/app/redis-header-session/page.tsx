@@ -7,10 +7,11 @@ export default function RedisHeaderSession() {
   const [xAtuhToken, setXAuthToken] = useState("");
 
   const apiResponse = async (url: string) => {
+    debugger;
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "X-auth-token": xAtuhToken,
+        "x-auth-token": xAtuhToken,
       },
       credentials: "include",
     });
@@ -28,7 +29,7 @@ export default function RedisHeaderSession() {
     fetch("http://localhost:8080/member/logout", {
       method: "POST",
       headers: {
-        "X-auth-token": xAtuhToken,
+        "x-auth-token": xAtuhToken,
       },
       credentials: "include", // 쿠키/세션 정보 포함
     }).then((response) => {
@@ -57,6 +58,7 @@ export default function RedisHeaderSession() {
     if (response.ok) {
       console.log("로그인 성공:", data);
       setResponseData(JSON.stringify(data, null, 2));
+      debugger;
       // Session Token 값 반환
       setXAuthToken(data.xAuthToken);
     } else {
