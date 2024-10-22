@@ -36,8 +36,9 @@ public class SecurityConfig {
         http.cors(cors->{
             cors.configurationSource(corsConfigurationSource());
         });
-
-        http.logout(logout->logout.logoutUrl("/logout"));
+        
+        // CSRF 제외 Path 설정
+        http.csrf(csrf->csrf.ignoringRequestMatchers("/csrf"));
 
         // 세션 설정
         http.sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
@@ -49,6 +50,7 @@ public class SecurityConfig {
                         // ✨ 인증되지 않은 사용자가 보호된 리소스에 접근
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
         );
+
 
         return http.build();
     }
