@@ -12,6 +12,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.session.Session;
+import org.springframework.session.data.redis.RedisSessionRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +28,8 @@ import java.util.Map;
 public class MemberController {
     // Spring Security Manager
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+
+    private final RedisSessionRepository redisSessionRepository;
 
     @Value("${spring.session.redis.namespace}")
     private String redisSessionPrefix;
@@ -46,21 +50,21 @@ public class MemberController {
 
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());
-        result.put("sessionToken", newSession.getId());
+        result.put("xAuthToken", newSession.getId());
 
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
-        // 현재 세션을 가져옵니다.
-        HttpSession session = request.getSession(false);
+        String sessionId = request.getHeader("x-auth-token");
+        Session session = redisSessionRepository.findById(sessionId);
 
-        log.info("-- Session 삭제 진입--");
-        if (session != null) {
-            log.info("-- Session 삭제 성공--");
-            session.invalidate(); // 세션 무효화
-        }
+        // Session 유무 확인
+        if (session == null) ResponseEntity.ok("Log-out Fail");
+
+        redisSessionRepository.deleteById(sessionId);
 
         // 로그아웃 성공 메시지 반환
         return ResponseEntity.ok("Logged out successfully");
