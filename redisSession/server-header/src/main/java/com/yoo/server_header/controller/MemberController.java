@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,8 +12,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -23,7 +22,8 @@ import java.util.Map;
 @Log4j2
 @RestController
 @RequiredArgsConstructor
-public class LoginController {
+@RequestMapping("/member")
+public class MemberController {
     // Spring Security Manager
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
@@ -51,7 +51,7 @@ public class LoginController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/member/logout")
+    @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
         // 현재 세션을 가져옵니다.
         HttpSession session = request.getSession(false);
