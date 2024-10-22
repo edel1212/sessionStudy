@@ -5,6 +5,7 @@ server:
 spring:
   session:
     store-type: redis
+    timeout: 60s
     redis:
       # Redis에 저장될 Key Prefix
       namespace: yoo:session
