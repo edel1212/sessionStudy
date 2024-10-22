@@ -7,7 +7,6 @@ export default function RedisHeaderSession() {
   const [xAtuhToken, setXAuthToken] = useState("");
 
   const apiResponse = async (url: string) => {
-    debugger;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -58,7 +57,6 @@ export default function RedisHeaderSession() {
     if (response.ok) {
       console.log("로그인 성공:", data);
       setResponseData(JSON.stringify(data, null, 2));
-      debugger;
       // Session Token 값 반환
       setXAuthToken(data.xAuthToken);
     } else {
