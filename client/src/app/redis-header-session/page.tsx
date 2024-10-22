@@ -46,7 +46,7 @@ export default function RedisHeaderSession() {
     formData.append("username", "yoo");
     formData.append("password", "123");
 
-    const response = await fetch("http://localhost:8080/login", {
+    const response = await fetch("http://localhost:8080/member/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
