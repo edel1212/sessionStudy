@@ -9,7 +9,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
@@ -41,7 +44,16 @@ public class SecurityConfig {
         http.csrf(csrf->csrf.ignoringRequestMatchers("/csrf"));
 
         // 세션 설정
-        http.sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+        http.sessionManagement( session->{
+            session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+            // 최대 세션 개수 설정
+            session.sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId)
+                    .maximumSessions(1)
+                    .maxSessionsPreventsLogin(false)
+                    .expiredUrl("/")
+                    .sessionRegistry(sessionRegistry());
+
+        });
 
         http.exceptionHandling(handling ->
                 handling
@@ -75,5 +87,10 @@ public class SecurityConfig {
         // 모든 경로에 대해 위에서 설정한 CORS 구성을 등록
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
     }
 }
