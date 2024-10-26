@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.data.redis.RedisIndexedSessionRepository;
@@ -52,7 +54,7 @@ public class SecurityConfig {
             session.sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId)
                     // 동시 세션 수 제한 (1로 설정하여 중복 로그인 방지)
                     .maximumSessions(1)
-                    .sessionRegistry(sessionRegistry())
+                    .sessionRegistry(sessionRegistry(redisIndexedSessionRepository))
                     // 기존 세션 만료 처리 (false: 로그인 시도 거부)
                     .maxSessionsPreventsLogin(true);
 
@@ -92,15 +94,18 @@ public class SecurityConfig {
         return source;
     }
 
-    @Bean
-    public SpringSessionBackedSessionRegistry<?> sessionRegistry() {
-        return new SpringSessionBackedSessionRegistry<>(redisIndexedSessionRepository);
-    }
+//    @Bean
+//    public SessionRegistry sessionRegistry() {
+//        return new SessionRegistryImpl();
+//    }
 
-    // HttpSessionEventPublisher 등록 (세션 이벤트 처리)
     @Bean
     public HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();
     }
 
+    @Bean
+    public SpringSessionBackedSessionRegistry<?> sessionRegistry(RedisIndexedSessionRepository sessionRepository) {
+        return new SpringSessionBackedSessionRegistry<>(sessionRepository);
+    }
 }
