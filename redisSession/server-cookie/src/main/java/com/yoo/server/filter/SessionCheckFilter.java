@@ -29,16 +29,30 @@ public class SessionCheckFilter extends OncePerRequestFilter {
         log.info("Into the Session Chain");
 
         HttpSession session = request.getSession();
+        log.info("Session ID: {}", session.getId());
 
-        log.info(session);
-
+        // 현재 세션에서 SecurityContext 확인
         SecurityContext securityContext = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
-        Authentication authentication = securityContext.getAuthentication();
-        User user = (User) authentication.getPrincipal();
 
-        log.info(user);
+        if (securityContext != null) {
+            Authentication authentication = securityContext.getAuthentication();
 
+            if (authentication != null) {
+                String username = authentication.getName();
+
+                log.info("User attempting to login: {}", username);
+
+//                // Redis에서 현재 사용자의 세션을 찾습니다.
+//                RedisSession loginUserInfo =  redisSessionRepository.findById(username);
+//                if (!redisSession.getId().equals(session.getId())) {
+//                    // 다른 세션이 존재할 경우 해당 세션을 삭제 (중복 로그인 방지)
+//                    log.info("Existing session found for user: {}. Invalidating session ID: {}", username, redisSession.getId());
+//                    redisSessionRepository.deleteById(redisSession.getId());
+//                }
+            }
+        }
 
         filterChain.doFilter(request, response);
     }
+
 }
