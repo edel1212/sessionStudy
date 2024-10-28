@@ -8,14 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.session.data.redis.RedisIndexedSessionRepository;
-import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -35,8 +29,6 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-    private final RedisIndexedSessionRepository redisIndexedSessionRepository;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // CORS 설정
@@ -50,14 +42,6 @@ public class SecurityConfig {
         // 세션 설정
         http.sessionManagement( session->{
             session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
-            // 최대 세션 개수 설정
-            session.sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId)
-                    // 동시 세션 수 제한 (1로 설정하여 중복 로그인 방지)
-                    .maximumSessions(1)
-                    .sessionRegistry(sessionRegistry(redisIndexedSessionRepository))
-                    // 기존 세션 만료 처리 (false: 로그인 시도 거부)
-                    .maxSessionsPreventsLogin(true);
-
         });
 
         http.exceptionHandling(handling ->
@@ -67,7 +51,6 @@ public class SecurityConfig {
                         // ✨ 인증되지 않은 사용자가 보호된 리소스에 접근
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
         );
-
 
         return http.build();
     }
@@ -94,18 +77,4 @@ public class SecurityConfig {
         return source;
     }
 
-//    @Bean
-//    public SessionRegistry sessionRegistry() {
-//        return new SessionRegistryImpl();
-//    }
-
-    @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
-    }
-
-    @Bean
-    public SpringSessionBackedSessionRegistry<?> sessionRegistry(RedisIndexedSessionRepository sessionRepository) {
-        return new SpringSessionBackedSessionRegistry<>(sessionRepository);
-    }
 }
