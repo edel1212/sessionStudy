@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.catalina.User;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.session.data.redis.RedisSessionRepository;
@@ -22,6 +23,7 @@ import java.io.IOException;
 public class SessionCheckFilter extends OncePerRequestFilter {
 
     private final RedisSessionRepository redisSessionRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -42,13 +44,14 @@ public class SessionCheckFilter extends OncePerRequestFilter {
 
                 log.info("User attempting to login: {}", username);
 
-//                // Redis에서 현재 사용자의 세션을 찾습니다.
-//                redisSessionRepository.findById(username);
-//                if (!redisSession.getId().equals(session.getId())) {
-//                    // 다른 세션이 존재할 경우 해당 세션을 삭제 (중복 로그인 방지)
-//                    log.info("Existing session found for user: {}. Invalidating session ID: {}", username, redisSession.getId());
-//                    redisSessionRepository.deleteById(redisSession.getId());
-//                }
+                // Redis에서 로그인 정보 찾기
+                // "loginUserData:" + username 키에서 "sessionId"와 "isLoggedIn" 필드를 각각 조회
+                String sessionId = (String) redisTemplate.opsForHash().get("loginUserData:" + username, "sessionId");
+                String isLoggedIn = (String) redisTemplate.opsForHash().get("loginUserData:" + username, "isLoggedIn");
+
+                log.info("Session ID: " + sessionId);
+                log.info("Is Logged In: " + isLoggedIn);
+
             }
         }
 
