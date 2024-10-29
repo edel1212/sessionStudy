@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @RestController
@@ -52,6 +53,8 @@ public class LoginController {
         sessionData.put("isLoggedIn", String.valueOf(true)); // 로그인 여부를 String으로 변환
         // 하나의 Redis Hash에 저장
         redisTemplate.opsForHash().putAll("loginUserData:" + username, sessionData);
+        // 저장 시간 지정
+        redisTemplate.expire("loginUserData:" + username, 180, TimeUnit.SECONDS);
 
         return ResponseEntity.ok(result);
     }
