@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +25,8 @@ public class LoginController {
     // Spring Security Manager
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @PreAuthorize("isAnonymous()")
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(String username, String password, HttpServletRequest request) {
@@ -40,6 +43,15 @@ public class LoginController {
 
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());
+
+
+        // 로그인 정보 Redis에 저장
+        String sessionId = session.getId();
+        Map<String, Object> sessionData = new HashMap<>();
+        sessionData.put("sessionId", sessionId);    // 세션 ID
+        sessionData.put("isLoggedIn", String.valueOf(true)); // 로그인 여부를 String으로 변환
+        // 하나의 Redis Hash에 저장
+        redisTemplate.opsForHash().putAll("loginUserData:" + username, sessionData);
 
         return ResponseEntity.ok(result);
     }

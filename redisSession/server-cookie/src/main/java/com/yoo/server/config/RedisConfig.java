@@ -8,7 +8,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 @Configuration
-@EnableRedisHttpSession  // Redis 세션 사용을 활성화
 public class RedisConfig {
 
     @Bean

@@ -43,7 +43,7 @@ public class SessionCheckFilter extends OncePerRequestFilter {
                 log.info("User attempting to login: {}", username);
 
 //                // Redis에서 현재 사용자의 세션을 찾습니다.
-//                RedisSession loginUserInfo =  redisSessionRepository.findById(username);
+//                redisSessionRepository.findById(username);
 //                if (!redisSession.getId().equals(session.getId())) {
 //                    // 다른 세션이 존재할 경우 해당 세션을 삭제 (중복 로그인 방지)
 //                    log.info("Existing session found for user: {}. Invalidating session ID: {}", username, redisSession.getId());
