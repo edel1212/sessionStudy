@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Log4j2
 @Component
@@ -31,7 +32,7 @@ public class SessionCheckFilter extends OncePerRequestFilter {
         log.info("Into the Session Chain");
 
         HttpSession session = request.getSession();
-        log.info("Session ID: {}", session.getId());
+        log.info("Current Session ID: {}", session.getId());
 
         // 현재 세션에서 SecurityContext 확인
         SecurityContext securityContext = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
@@ -41,17 +42,27 @@ public class SessionCheckFilter extends OncePerRequestFilter {
 
             if (authentication != null) {
                 String username = authentication.getName();
-
                 log.info("User attempting to login: {}", username);
 
-                // Redis에서 로그인 정보 찾기
-                // "loginUserData:" + username 키에서 "sessionId"와 "isLoggedIn" 필드를 각각 조회
-                String sessionId = (String) redisTemplate.opsForHash().get("loginUserData:" + username, "sessionId");
-                String isLoggedIn = (String) redisTemplate.opsForHash().get("loginUserData:" + username, "isLoggedIn");
+                // Redis에서 기존 세션 ID와 로그인 상태 조회
+                String redisSessionIdKey = "loginUserData:" + username;
+                String previousSessionId = (String) redisTemplate.opsForHash().get(redisSessionIdKey, "sessionId");
+                String isLoggedIn = (String) redisTemplate.opsForHash().get(redisSessionIdKey, "isLoggedIn");
 
-                log.info("Session ID: " + sessionId);
-                log.info("Is Logged In: " + isLoggedIn);
+                log.info("Previous Session ID from Redis: " + previousSessionId);
+                log.info("Is Logged In (from Redis): " + isLoggedIn);
 
+                // Redis에 저장된 세션 ID가 현재 세션과 다르고, 이미 로그인된 상태라면 기존 세션을 삭제
+                if (!Objects.equals(session.getId(), previousSessionId) && "true".equals(isLoggedIn)) {
+                    if (previousSessionId != null) {
+                        log.info("Deleting previous session ID: {}", previousSessionId);
+                        redisSessionRepository.deleteById(previousSessionId); // 기존 세션 삭제
+                    }
+                    // Redis에 새로운 세션 정보 업데이트
+                    redisTemplate.opsForHash().put(redisSessionIdKey, "sessionId", session.getId());
+                    redisTemplate.opsForHash().put(redisSessionIdKey, "isLoggedIn", "true");
+                    log.info("Updated Redis with new session ID: {}", session.getId());
+                }
             }
         }
 
