@@ -36,42 +36,39 @@ public class LoginController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(String username, String password, HttpServletRequest request) {
 
-        // Login 전 중복 로그인 체크
-        // Redis에서 기존 세션 ID와 로그인 상태 조회
+        // 1 . 로그인 정보 확인
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+
+        // >> Login 전 중복 로그인 체크
+        // 2 . Redis에서 Login 정보 유/무 체크
         String redisSessionIdKey = "loginUserData:" + username;
         String previousSessionId = (String) redisTemplate.opsForHash().get(redisSessionIdKey, "sessionId");
-        log.info("Previous Session ID from Redis: " + previousSessionId);
 
-        // 새로운 세션 생성
-        HttpSession session = request.getSession(true);
-
-        // Redis에 저장된 세션 ID가 현재 세션과 다르고, 이미 로그인된 상태라면 기존 세션을 삭제
-        if (!Objects.equals(session.getId(), previousSessionId) && previousSessionId != null) {
-            log.info("Deleting previous session ID: {}", previousSessionId);
+        // 3 . 로그인 되어 있는 정보 삭제
+        if (previousSessionId != null) {
+            log.info("이전 로그인 Session Id: " + previousSessionId + " 삭제");
             redisSessionRepository.deleteById(previousSessionId); // 기존 세션 삭제
         } //if
 
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
-
+        // >> 인증 정보를 SecurityContext에 저장
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
-        // 인증 정보를 SecurityContext에 저장
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        // 4 . 신규 생성된 Session에 Security Context 정보 저장
+        HttpSession session = request.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
+
+        // 5 . Redis에 로그인 정보 저장 - 중복 로그인 방지용
+        String sessionId                = session.getId();
+        Map<String, Object> sessionData = new HashMap<>();
+        sessionData.put("sessionId", sessionId);
+        redisTemplate.opsForHash().putAll(redisSessionIdKey, sessionData);
+        // 저장 시간 지정
+        redisTemplate.expire(redisSessionIdKey, 180, TimeUnit.SECONDS);
+
 
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());
-
-        // 로그인 정보 Redis에 저장
-        String sessionId = session.getId();
-        Map<String, Object> sessionData = new HashMap<>();
-        sessionData.put("sessionId", sessionId);    // 세션 ID
-        // 하나의 Redis Hash에 저장
-        redisTemplate.opsForHash().putAll("loginUserData:" + username, sessionData);
-        // 저장 시간 지정
-        redisTemplate.expire("loginUserData:" + username, 180, TimeUnit.SECONDS);
-
         return ResponseEntity.ok(result);
     }
 
