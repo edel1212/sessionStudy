@@ -10,7 +10,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.session.data.redis.RedisSessionRepository;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -66,26 +67,28 @@ public class LoginController {
         // 저장 시간 지정
         redisTemplate.expire(redisSessionIdKey, 180, TimeUnit.SECONDS);
 
-
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/member/logout")
-    public ResponseEntity<String> logout(HttpServletRequest request, Authentication authentication) {
+    public ResponseEntity<String> logout(HttpServletRequest request, @AuthenticationPrincipal User user) {
         // 현재 세션을 가져옵니다.
-        HttpSession session = request.getSession(false); // false로 설정하면 세션이 없을 때 새로운 세션을 만들지 않습니다.
+        HttpSession session = request.getSession(false);
 
         log.info("-- Session 삭제 진입--");
         if (session != null) {
             log.info("-- Session 삭제 성공--");
             session.invalidate(); // 세션 무효화
-        }
+            // Redis Template 정보 삭제
+            String redisSessionIdKey = "loginUserData:" + user.getUsername();
+            String previousSessionId = (String) redisTemplate.opsForHash().get(redisSessionIdKey, "sessionId");
+            redisSessionRepository.deleteById(previousSessionId);
+        } // if
 
         // 로그아웃 성공 메시지 반환
         return ResponseEntity.ok("Logged out successfully");
     }
-
 
 }
