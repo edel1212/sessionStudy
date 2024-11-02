@@ -57,7 +57,7 @@ spring:
       password: 123
 ```
 
-## **Cookie 전달 방식** Server 설정
+## Cookie 전달 방식
 
 - ### Cookie 설정
   - 주의사항
@@ -254,6 +254,130 @@ public class LoginController {
             String previousSessionId = (String) redisTemplate.opsForHash().get(redisSessionIdKey, "sessionId");
             redisSessionRepository.deleteById(previousSessionId);
         } // if
+
+        // 로그아웃 성공 메시지 반환
+        return ResponseEntity.ok("Logged out successfully");
+    }
+
+}
+```
+
+## Header 전달 방식
+
+```properties
+# ℹ️ Cookie 설정 ❌
+#    OnceFilter 설정 ✅
+```
+
+- ### OnceFilter 설정
+  - `Header`의 Key 값은 로그인 시 지정 값으로 사용
+  - 사용자의 요청이 올 경우 **단 한번** Header의 `Session Id` 값을 사용해서 `RedisSessionRepository`에서 값을 꺼내 값을 검증
+
+```java
+@Log4j2
+@Component
+@RequiredArgsConstructor
+public class SessionCheckFilter extends OncePerRequestFilter {
+
+    private final RedisSessionRepository redisSessionRepository;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // 1. Get Header 값
+        String sessionId = request.getHeader("x-auth-token");
+
+        // Header 값이 없을 경우 Skip
+        if(sessionId == null){
+            filterChain.doFilter(request, response);
+            return;
+        }// if
+
+        // 2. sessionId을 사용 Redis에서 Session 존재 여부 확인
+        Session session = redisSessionRepository.findById(sessionId);
+
+        // 3. Check if session exists
+        if (session != null) {
+
+            // Log ::  Session found in Redis: 5844cdce-cdb0-4f6c-9640-ac865eaafda4
+            log.info("Session found in Redis: " + sessionId);
+
+            // 3-1. Session 내 SecurityContext 값 추출
+            SecurityContext securityContext = session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+
+            //  Check SecurityContext exists
+            if (securityContext != null) {
+
+                // Log :: Authenticated user: yoo
+                log.info("Authenticated user: " + securityContext.getAuthentication().getName());
+
+                // ✅ SecurityContextHolder에 값을 주입 - 가장 중요 로직
+                SecurityContextHolder.setContext(securityContext);
+
+            }  else {
+                log.warn("No SecurityContext found in Redis session.");
+            } // if - else
+
+        } else {
+            log.warn("No session found in Redis for sessionId: " + sessionId);
+        } // if
+
+        filterChain.doFilter(request, response);
+    }
+}
+```
+
+- ### Contorller 설정
+  - `Header`에 넣어줄 Key 값 및 Value인 Session ID 저장
+  - 로그 아웃의 경우 `Header` 내 `sssionId`를 `redisSessionRepository`에 조회 후 삭제 처리
+  - ℹ️ 중복 로그인 체크의 경우 Cookie 사용 방법과 유사하기에 제외
+    - [링크]("www.naver.com")
+
+```java
+@Log4j2
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/member")
+public class MemberController {
+    // Spring Security Manager
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+
+    private final RedisSessionRepository redisSessionRepository;
+
+    @Value("${spring.session.redis.namespace}")
+    private String redisSessionPrefix;
+
+    @PreAuthorize("isAnonymous()")
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> login(String username, String password, HttpServletRequest request) {
+        // 인증 로직
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        // 인증 정보를 SecurityContext에 저장
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 새로운 세션 생성
+        HttpSession newSession = request.getSession(true);
+        newSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
+
+        Map<String, String> result = new HashMap<>();
+        result.put("userName", authentication.getName());
+        // Session ID를 반환
+        result.put("xAuthToken", newSession.getId());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        String sessionId = request.getHeader("x-auth-token");
+        Session session = redisSessionRepository.findById(sessionId);
+
+        // Session 유무 확인
+        if (session == null) ResponseEntity.ok("Log-out Fail");
+
+        redisSessionRepository.deleteById(sessionId);
 
         // 로그아웃 성공 메시지 반환
         return ResponseEntity.ok("Logged out successfully");

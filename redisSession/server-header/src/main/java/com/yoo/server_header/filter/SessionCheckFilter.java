@@ -45,7 +45,7 @@ public class SessionCheckFilter extends OncePerRequestFilter {
 
 
             // 3-1. Session 내 SecurityContext 값 추출
-            SecurityContext securityContext = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+            SecurityContext securityContext = session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
 
             //  Check SecurityContext exists
             if (securityContext != null) {
