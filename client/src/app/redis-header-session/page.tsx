@@ -25,7 +25,7 @@ export default function RedisHeaderSession() {
   };
 
   const logOut = async () => {
-    fetch("http://localhost:8080/member/logout", {
+    fetch("http://localhost/member/logout", {
       method: "POST",
       headers: {
         "x-auth-token": xAtuhToken,
@@ -45,7 +45,7 @@ export default function RedisHeaderSession() {
     formData.append("username", "yoo");
     formData.append("password", "123");
 
-    const response = await fetch("http://localhost:8080/member/login", {
+    const response = await fetch("http://localhost/member/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -69,29 +69,27 @@ export default function RedisHeaderSession() {
     <main style={{ display: "flex", justifyContent: "space-between" }}>
       <section style={{ width: "100vw", border: "1px solid" }}>
         <p>
-          <button onClick={() => apiResponse("http://localhost:8080/all")}>
+          <button onClick={() => apiResponse("http://localhost/all")}>
             All Access
           </button>
         </p>
         <p>
-          <button onClick={() => apiResponse("http://localhost:8080/no-login")}>
+          <button onClick={() => apiResponse("http://localhost/no-login")}>
             No Login
           </button>
         </p>
         <p>
-          <button
-            onClick={() => apiResponse("http://localhost:8080/has-certified")}
-          >
+          <button onClick={() => apiResponse("http://localhost/has-certified")}>
             Login User
           </button>
         </p>
         <p>
-          <button onClick={() => apiResponse("http://localhost:8080/admin")}>
+          <button onClick={() => apiResponse("http://localhost/admin")}>
             Admin
           </button>
         </p>
         <p>
-          <button onClick={() => apiResponse("http://localhost:8080/user")}>
+          <button onClick={() => apiResponse("http://localhost/user")}>
             User
           </button>
         </p>
