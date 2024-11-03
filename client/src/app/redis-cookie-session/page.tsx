@@ -8,7 +8,7 @@ export default function RedisCookieSession() {
 
   // 컴포넌트가 처음 렌더링될 때 CSRF 토큰을 가져오는 함수
   const fetchCsrfToken = async () => {
-    const response = await fetch("http://localhost:8080/csrf", {
+    const response = await fetch("http://localhost/csrf", {
       credentials: "include", // 쿠키 포함
     });
     const data = await response.json();
@@ -41,7 +41,7 @@ export default function RedisCookieSession() {
   };
 
   const logOut = async () => {
-    fetch("http://localhost:8080/member/logout", {
+    fetch("http://localhost/member/logout", {
       method: "POST",
       headers: {
         "X-CSRF-TOKEN": csrfToken, // 헤더에 CSRF 토큰 포함
@@ -64,7 +64,7 @@ export default function RedisCookieSession() {
     formData.append("password", "123");
     formData.append("_csrf", csrfToken);
 
-    const response = await fetch("http://localhost:8080/login", {
+    const response = await fetch("http://localhost/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -97,29 +97,27 @@ export default function RedisCookieSession() {
           </button>
         </p>
         <p>
-          <button onClick={() => apiResponse("http://localhost:8080/all")}>
+          <button onClick={() => apiResponse("http://localhost/all")}>
             All Access
           </button>
         </p>
         <p>
-          <button onClick={() => apiResponse("http://localhost:8080/no-login")}>
+          <button onClick={() => apiResponse("http://localhost/no-login")}>
             No Login
           </button>
         </p>
         <p>
-          <button
-            onClick={() => apiResponse("http://localhost:8080/has-certified")}
-          >
+          <button onClick={() => apiResponse("http://localhost/has-certified")}>
             Login User
           </button>
         </p>
         <p>
-          <button onClick={() => apiResponse("http://localhost:8080/admin")}>
+          <button onClick={() => apiResponse("http://localhost/admin")}>
             Admin
           </button>
         </p>
         <p>
-          <button onClick={() => apiResponse("http://localhost:8080/user")}>
+          <button onClick={() => apiResponse("http://localhost/user")}>
             User
           </button>
         </p>

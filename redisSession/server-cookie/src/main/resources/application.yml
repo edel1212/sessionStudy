@@ -1,11 +1,8 @@
-# poert chage
-server:
-  port: 8080
-
 spring:
+  profiles:
+    active: local
   session:
     store-type: redis
-    timeout: 180s
     redis:
       # Redis에 저장될 Key Prefix
       namespace: yoo:session

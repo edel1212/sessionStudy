@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,13 +26,16 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 @RestController
 @RequiredArgsConstructor
-public class LoginController {
+public class MemberController {
     // Spring Security Manager
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final RedisSessionRepository redisSessionRepository;
+
+    @Value("${server.port}")
+    private String serverPort;
 
     @PreAuthorize("isAnonymous()")
     @PostMapping("/login")
@@ -69,6 +73,8 @@ public class LoginController {
 
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());
+        // 포트 번호 가져오기
+        result.put("port", serverPort);  // 포트 번호 추가
         return ResponseEntity.ok(result);
     }
 
