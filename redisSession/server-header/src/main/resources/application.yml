@@ -1,7 +1,3 @@
-# poert chage
-server:
-  port: 8080
-
 spring:
   session:
     store-type: redis

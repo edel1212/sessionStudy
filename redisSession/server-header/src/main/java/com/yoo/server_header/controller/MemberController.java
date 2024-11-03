@@ -31,6 +31,9 @@ public class MemberController {
 
     private final RedisSessionRepository redisSessionRepository;
 
+    @Value("${server.port}")
+    private String serverPort;
+
     @Value("${spring.session.redis.namespace}")
     private String redisSessionPrefix;
 
@@ -51,6 +54,9 @@ public class MemberController {
         Map<String, String> result = new HashMap<>();
         result.put("userName", authentication.getName());
         result.put("xAuthToken", newSession.getId());
+
+        // 포트 번호 가져오기
+        result.put("port", serverPort);  // 포트 번호 추가
 
         return ResponseEntity.ok(result);
     }

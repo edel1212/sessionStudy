@@ -2,6 +2,7 @@ package com.yoo.server_header.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,14 +19,15 @@ import java.util.Map;
 @RestController
 public class AuthCheckController {
 
+    @Value("${server.port}")
+    private String serverPort;
+
     @PostMapping("/all")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<Map<String, String>> all(HttpServletRequest request){
+    public ResponseEntity<Map<String, String>> all(){
         Map<String, String> msg = new HashMap<>();
 
-        log.info("-----------------------");
-        Object redisSession = request.getSession().getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
-        log.info("-----------------------");
+        msg.put("port", serverPort);
 
         msg.put("msg", "All Access");
         return ResponseEntity.ok(msg);
@@ -37,13 +39,15 @@ public class AuthCheckController {
     public ResponseEntity<Map<String, String>> noLogin(){
         Map<String, String> msg = new HashMap<>();
         msg.put("msg", "Doesn't have Auth");
+        msg.put("port", serverPort);
+
         return ResponseEntity.ok(msg);
     }
 
     // 인증된 사용자
     @PostMapping("/has-certified")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, String>> isAuthenticated(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Map<String, String>> isAuthenticated(HttpServletRequest request, @AuthenticationPrincipal UserDetails userDetails) {
         String authorities = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .reduce((a, b) -> a + ", " + b)
@@ -54,6 +58,8 @@ public class AuthCheckController {
         userInfo.put("username", userDetails.getUsername());
         userInfo.put("password", userDetails.getPassword());
         userInfo.put("authorities", authorities);
+
+        userInfo.put("port", serverPort);
 
         // Map을 JSON 응답으로 반환
         return ResponseEntity.ok(userInfo);
@@ -71,13 +77,15 @@ public class AuthCheckController {
         userInfo.put("username", userDetails.getUsername());
         userInfo.put("password", userDetails.getPassword());
         userInfo.put("authorities", authorities);
+        userInfo.put("port", serverPort);
+
         // Map을 JSON 응답으로 반환
         return ResponseEntity.ok(userInfo);
     }
 
     @PostMapping("/user")
     @PreAuthorize("hasRole('User')")
-    public ResponseEntity<Map<String, String>> use(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Map<String, String>> user(@AuthenticationPrincipal UserDetails userDetails) {
         String authorities = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .reduce((a, b) -> a + ", " + b)
@@ -87,6 +95,8 @@ public class AuthCheckController {
         userInfo.put("username", userDetails.getUsername());
         userInfo.put("password", userDetails.getPassword());
         userInfo.put("authorities", authorities);
+        userInfo.put("port", serverPort);
+
         // Map을 JSON 응답으로 반환
         return ResponseEntity.ok(userInfo);
     }
