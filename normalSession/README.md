@@ -119,6 +119,7 @@
 - ### Cookie 설정
 
   - `Server`가 `Client`에 `Cookie`를 제공 후 어떤 조건에서 `Server`로 다시 전송될 수 있는지를 설정
+    - Session 명을 변경하기 위해서는 `DefaultCookieSerializer`를 사용하가 위해서는 Reids Session 사용이 필요 Redis Session을 사용하지 않을 경우 application.yml에서 설정 필요
 
   ```java
   @Configuration
