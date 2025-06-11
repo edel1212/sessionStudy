@@ -137,7 +137,8 @@
           serializer.setSameSite("None");
           // HTTP 프로토콜일 경우에도 쿠키 전송 허용 [ 비권장 ]
           serializer.setUseSecureCookie(false);
-          // 쿠키가 유효한 도메인을 지정
+          // 쿠키가 유효한 도메인을 지정 ✅ 해당 부분이 포인트임 사실상 SameSite 설정을 "None"으로 설정해도 접근이 불가능하나
+          // 아래와 같이 localhost 만 접근 가능하게 설정하여 도메인이 달라도 Server -> Client 에서 Cookie를 받을 수 있는 것
           serializer.setDomainName("localhost");
           return serializer;
       }
